@@ -14,6 +14,7 @@ type CasbinSettings struct {
 	Config      string
 	Table       string
 	Db          *sqlx.DB
+	EnableCache bool
 }
 
 type CasbinEnforcerConfig struct {
@@ -57,6 +58,7 @@ func NewCasbinEnforcerConfig(cs *CasbinSettings) (*CasbinEnforcerConfig, error) 
 		return nil, err
 	}
 	enforcer.EnableAutoSave(true)
+	enforcer.EnableCache(cs.EnableCache)
 	csbnConfig := &CasbinEnforcerConfig {
 		Enforcer:    enforcer,
 		CasbinTable: cs.Table,
@@ -93,13 +95,55 @@ func(cec *CasbinEnforcerConfig) InitPolicies() error {
 			slog.Info("This policy already exists.")
 		}
 	}
+	cec.Enforcer.LoadPolicy()
 	return nil
+}
+
+func(cs *CasbinSettings) ListPoliciesCtx(ctx context.Context) ([][]string, error) {
+	policies := make([][]string, 0)
+	query := fmt.Sprintf("SELECT DISTINCT v0, v1, v2 FROM %s WHERE %s = ?", cs.Table, "p_type")
+	rows, err := cs.Db.QueryContext(ctx, query, "p")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var (
+			sub string
+			obj string
+			act string
+		)
+		if err := rows.Scan(&sub, &obj, &act); err != nil {
+			return nil, err
+		}
+		policies = append(policies, []string { sub, obj, act })
+	}
+	return policies, nil
+}
+
+func(cs *CasbinSettings) ListGroupingPoliciesCtx(ctx context.Context) ([][]string, error) {
+	gpolicies := make([][]string, 0)
+	query := fmt.Sprintf("SELECT DISTINCT v0, v1 FROM %s WHERE %s = ?", cs.Table, "p_type")
+	rows, err := cs.Db.QueryContext(ctx, query, "g")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var (
+			m  string
+			r  string
+		)
+		if err := rows.Scan(&m, &r); err != nil {
+			return nil, err
+		}
+		gpolicies = append(gpolicies, []string { m, r })
+	}
+	return gpolicies, nil
 }
 
 func(cs *CasbinSettings) ListRolesCtx(ctx context.Context) ([]string, error) {
 	roles := make([]string, 0)
-	query := fmt.Sprintf("SELECT DISTINCT %s FROM ? WHERE %s = ?", "v1", "p_type")
-	rows, err := cs.Db.QueryContext(ctx, query, cs.Table, "g")
+	query := fmt.Sprintf("SELECT DISTINCT %s FROM %s WHERE %s = ?", "*", cs.Table, "p_type")
+	rows, err := cs.Db.QueryContext(ctx, query, "g")
 	if err != nil {
 		return nil, err
 	}
@@ -232,6 +276,7 @@ func(cec *CasbinEnforcerConfig) AddPolicy(cp *CasbinPolicy) error {
 		}
 		return fmt.Errorf("This policy already exists.")
 	}
+	cec.Enforcer.LoadPolicy()
 	return nil
 }
 
@@ -242,6 +287,7 @@ func(cec *CasbinEnforcerConfig) AddGroupingPolicy(cgp *CasbinGroupingPolicy) err
 		}
 		return fmt.Errorf("This grouping policy already exists.")
 	}
+	cec.Enforcer.LoadPolicy()
 	return nil
 }
 
@@ -252,6 +298,7 @@ func(cec *CasbinEnforcerConfig) DeletePolicy(cp *CasbinPolicy) error {
 		}
 		return fmt.Errorf("This policy not exists.")
 	}
+	cec.Enforcer.LoadPolicy()
 	return nil
 }
 
@@ -262,6 +309,7 @@ func(cec *CasbinEnforcerConfig) DeleteGroupingPolicy(cgp *CasbinGroupingPolicy) 
 		}
 		return fmt.Errorf("This grouping policy not exists.")
 	}
+	cec.Enforcer.LoadPolicy()
 	return nil
 }
 
@@ -270,8 +318,12 @@ func(cec *CasbinEnforcerConfig) DeleteRole(name string) error {
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("No policy (role) exists.")
+		return fmt.Errorf("This policy (role) not exists.")
 	}
+	if _, err := cec.Enforcer.RemoveFilteredGroupingPolicy(1, name); err != nil {
+		return err
+	}
+	cec.Enforcer.LoadPolicy()
 	return nil
 }
 
@@ -280,8 +332,9 @@ func(cec *CasbinEnforcerConfig) DeleteMemeber(name string) error {
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("No groupiing policy (member) exists.")
+		return fmt.Errorf("This groupiing policy (member) not exists.")
 	}
+	cec.Enforcer.LoadPolicy()
 	return nil
 }
 

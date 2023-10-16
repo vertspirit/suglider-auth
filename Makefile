@@ -22,7 +22,7 @@ clean:
 	@if [ -f bin/${BINARY_NAME} ] ; then rm -f bin/${BINARY_NAME} ; fi
 
 docker:
-	docker build --no-cache \
+	docker buildx build --no-cache \
 	--build-arg "TZ=${TZ}" \
 	--build-arg "GO_VERSION=${GO_VERSION}" \
 	--build-arg "VERSION=${VERSION}" \

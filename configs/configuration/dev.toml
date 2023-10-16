@@ -11,15 +11,16 @@
 [session]
   timeout  = "2h" # Value can be 1h, 1m, 10s, 2days would be 48h.
 [server]
-  graceful_timeout = 5
-  read_timeout     = 5
-  write_timeout    = 15
-  max_header_bytes = 2
-  casbin_config    = "/usr/local/app/configs/rbac_model.conf"
-  casbin_table     = "casbin_policies"
-  enable_rbac      = true
-  template_path    = "/usr/local/app/web/template"
-  static_path      = "/usr/local/app/web/static"
+  graceful_timeout  = 5
+  read_timeout      = 5
+  write_timeout     = 15
+  max_header_bytes  = 2
+  casbin_config     = "/usr/local/app/configs/rbac_model.conf"
+  casbin_table      = "casbin_policies"
+  casbin_cache      = true
+  enable_rbac       = true
+  template_path     = "/usr/local/app/web/template"
+  static_path       = "/usr/local/app/web/static"
 [log]
   [log.filelog]
     filename   = "/usr/local/app/logs/suglider-auth.log"

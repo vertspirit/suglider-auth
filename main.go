@@ -78,6 +78,7 @@ func main() {
 		StaticPath:     configs.ApplicationConfig.Server.StaticPath,
 		CasbinConfig:   configs.ApplicationConfig.Server.CasbinConfig,
 		CasbinTable:    configs.ApplicationConfig.Server.CasbinTable,
+		CasbinCache:    configs.ApplicationConfig.Server.CasbinCache,
 		ReadTimeout:    configs.ApplicationConfig.Server.ReadTimeout,
 		WriteTimeout:   configs.ApplicationConfig.Server.WriteTimeout,
 		MaxHeaderBytes: configs.ApplicationConfig.Server.MaxHeaderBytes,

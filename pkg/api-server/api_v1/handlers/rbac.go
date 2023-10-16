@@ -354,8 +354,8 @@ func CasbinDeleteSinglePolicy(csbn *CasbinEnforcerConfig) gin.HandlerFunc {
 	}
 }
 
-// @Summary Delete RBAC Single Grouping Policy (Remove Role of Member)
-// @Description delete a single policy (remove role of member)
+// @Summary Delete RBAC Single Grouping Policy (Remove A Role of Member)
+// @Description delete a single policy (remove a role of member)
 // @Tags privilege
 // @Accept application/json
 // @Produce application/json
@@ -442,10 +442,10 @@ func CasbinDeletePolicy(csbn *CasbinEnforcerConfig) gin.HandlerFunc {
 			return
 		}
 		if err = csbn.DeleteRole(name); err != nil {
-			if err.Error() == "No policy (role) exists." {
+			if err.Error() == "This policy (role) not exists." {
 				c.JSON(http.StatusOK, gin.H {
 					"status":  "nothing happens",
-					"message": "No policy (role) exists.",
+					"message": "This policy (role) not exists.",
 					"role":    name,
 				})
 				return
@@ -489,10 +489,10 @@ func CasbinDeleteGroupingPolicy(csbn *CasbinEnforcerConfig) gin.HandlerFunc {
 			return
 		}
 		if err = csbn.DeleteMemeber(name); err != nil {
-			if err.Error() == "No groupiing policy (member) exists." {
+			if err.Error() == "This groupiing policy (member) not exists." {
 				c.JSON(http.StatusOK, gin.H {
 					"status":  "nothing happens",
-					"message": "No groupiing policy (member) exists.",
+					"message": "This groupiing policy (member) not exists.",
 					"member":  name,
 				})
 				return
