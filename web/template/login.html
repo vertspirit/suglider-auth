@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<link href="/static/css/demo.css" rel="stylesheet">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<body>
+{{ if .success }}
+    <div class="alert alert-success" role="alert">
+        {{ .success }}
+    </div>
+{{ end }}
+{{if .error}}
+    <div class="alert alert-danger" role="alert">
+        {{ .error }}
+    </div>
+{{end}}
+<div class="container register-form">
+    <form METHOD="POST" ACTION="/api/v1/user/login" id="login">
+        <div class="form">
+            <div class="note">
+                <p>Login Demo Page</p>
+            </div>
+            <div class="form-content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Username" id="username" name="username" value=""/>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="Password" id="password" name="password" value=""/>
+                        </div>
+                        <div class="form-group">
+                            <p>Not registered? <a href="/sign-up">Sign Up</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btnSubmit">Login</button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+<script>
+/**
+ * Helper function for POSTing data as JSON with fetch.
+ *
+ * @param {Object} options
+ * @param {string} options.url - URL to POST data to
+ * @param {FormData} options.formData - `FormData` instance
+ * @return {Object} - Response body from URL that was POSTed to
+ */
+async function postFormDataAsJson({ url, formData }) {
+	const plainFormData = Object.fromEntries(formData.entries());
+	const formDataJsonString = JSON.stringify(plainFormData);
+
+	const fetchOptions = {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		},
+		body: formDataJsonString,
+	};
+
+	const response = await fetch(url, fetchOptions);
+
+	if (!response.ok) {
+		const errorMessage = await response.text();
+		throw new Error(errorMessage);
+	}
+	// window.location.href += 'hello'
+	window.location.href = 'hello'
+	return response.json();
+}
+
+/**
+ * Event handler for a form submit event.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/submit_event
+ *
+ * @param {SubmitEvent} event
+ */
+async function handleFormSubmit(event) {
+	event.preventDefault();
+
+	const form = event.currentTarget;
+	const url = form.action;
+
+	try {
+		const formData = new FormData(form);
+		const responseData = await postFormDataAsJson({ url, formData });
+
+		console.log({ responseData });
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+const exampleForm = document.getElementById("login");
+exampleForm.addEventListener("submit", handleFormSubmit);
+</script>
+</html>

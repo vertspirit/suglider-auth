@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<link href="/static/css/demo.css" rel="stylesheet">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<body>
+{{ if .success }}
+    <div class="alert alert-success" role="alert">
+        {{ .success }}
+    </div>
+{{ end }}
+{{if .error}}
+    <div class="alert alert-danger" role="alert">
+        {{ .error }}
+    </div>
+{{end}}
+<div class="container register-form">
+    <form METHOD="POST" ACTION="/api/v1/user/login" enctype="multipart/form-data">
+        <div class="form">
+            <div class="note">
+                <p>Login Demo Page</p>
+            </div>
+            <div class="form-content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Username" name="username" value=""/>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="Password" name="password" value=""/>
+                        </div>
+                        <div class="form-group">
+                            <p>Not registered? <a href="/sign-up">Sign Up</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btnSubmit">Login</button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>
