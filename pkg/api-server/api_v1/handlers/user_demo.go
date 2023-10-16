@@ -10,6 +10,31 @@ import (
 	"suglider-auth/pkg/session"
 )
 
+func UserSignUpDemo(c *gin.Context) {
+	var request userSignUp
+	var err error
+
+	// Check the parameter trasnfer from POST
+	err = c.ShouldBindJSON(&request)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "signup.html", gin.H {"error": err.Error()})
+		return
+	}
+
+	// Encode user password
+	passwordEncode, _ := encrypt.SaltedPasswordHash(request.Password)
+
+	err = mariadb.UserSignUp(request.Username, passwordEncode, request.Mail, request.Address)
+	if err != nil {
+		log.Println("Insert user_info table failed:", err)
+		c.HTML(http.StatusInternalServerError, "signup.html", gin.H {"error": "Internal Server Error"})
+		return
+	} else {
+		// c.JSON(http.StatusOK, gin.H {"message": "User created successfully"})
+		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
+}
+
 func UserLoginDemo(c *gin.Context) {
 
 	var request userLogin
@@ -38,20 +63,20 @@ func UserLoginDemo(c *gin.Context) {
 				session.AddSession(c, request.Username)
 				c.Redirect(http.StatusMovedPermanently, "/hello")
 			} else if !pwdVerify {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
+				c.HTML(http.StatusUnauthorized, "login.html", gin.H {"error": "Invalid password"})
 				return
 			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+				c.HTML(http.StatusInternalServerError, "login.html", gin.H {"error": "Internal Server Error"})
 				return
 			}
 
 		} else if err == sql.ErrNoRows {
 			log.Println("User Login failed:", err)
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			c.HTML(http.StatusNotFound, "login.html", gin.H {"error": "User not found"})
 			return
 		} else if err != nil {
 			log.Println("Login failed:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Internal Server Error"})
 			return
 		}
 	} else {
@@ -84,19 +109,19 @@ func UserLoginForm(c *gin.Context) {
 			session.AddSession(c, username)
 			c.Redirect(http.StatusMovedPermanently, "/hello")
 		} else if !pwdVerify {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
+			c.HTML(http.StatusUnauthorized, "login.html", gin.H {"error": "Invalid password"})
 			return
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.HTML(http.StatusInternalServerError, "login.html", gin.H {"error": "Internal Server Error"})
 			return
 		}
 	} else if err == sql.ErrNoRows {
 		log.Println("User Login failed:", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		c.HTML(http.StatusNotFound, "login.html", gin.H {"error": "User not found"})
 		return
 	} else if err != nil {
 		log.Println("Login failed:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Internal Server Error"})
 		return
 	}
 }
@@ -106,7 +131,6 @@ func UserLogOutDemo(c *gin.Context) {
 	ok := session.CheckSession(c)
 	if !ok {
 		log.Printf("session ID %s doesn't exsit in redis\n", sid)
-		return
 	}
 	session.DeleteSession(sid)
 	c.Redirect(http.StatusMovedPermanently, "/login")
