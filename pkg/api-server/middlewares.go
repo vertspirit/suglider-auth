@@ -10,11 +10,8 @@ import (
 func userPrivilege(csbn *rbac.CasbinEnforcerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sub, exist := c.Get("Username")
-		if ! exist {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H {
-				"status": "forbidden",
-				"message": "Username Not Found.",
-			})
+		if !exist {
+			sub = "anonymous"
 		}
 		obj := c.Request.URL.Path  // c.Request.URL.RequestURI()
 		act := c.Request.Method
@@ -26,14 +23,16 @@ func userPrivilege(csbn *rbac.CasbinEnforcerConfig) gin.HandlerFunc {
 		default:
 		}
 
-		if pass, err := csbn.Enforcer.Enforce(sub, obj, act); !pass {
+		if pass, err := csbn.Enforcer.Enforce(sub.(string), obj, act); !pass {
 			if err != nil {
 				slog.ErrorContext(c, err.Error())
 			}
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H {
-				"status": "forbidden",
-				"message": "You don't have the required permission.",
-			})
+			c.Redirect(http.StatusTemporaryRedirect, "/login")
+			c.Abort()
+			// c.AbortWithStatusJSON(http.StatusForbidden, gin.H {
+			// 	"status": "forbidden",
+			// 	"message": "You don't have the required permission.",
+			// })
 		}
 		c.Next()
 	}
