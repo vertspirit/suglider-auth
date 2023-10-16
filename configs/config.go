@@ -42,11 +42,14 @@ type (
 		Timeout        string             `toml:"timeout"`
 	}
 	Redis struct {
-		Host    string    `toml:"host"`
-		Port    string    `toml:"port"`
+		Host     string    `toml:"host"`
+		Port     string    `toml:"port"`
+		Password string    `toml:"password"`
 	}
 	Session struct {
 		Timeout    string    `toml:"timeout"`
+		Path       string    `toml:"path"`
+		HttpOnly   bool      `toml:"http_only"`
 	}
 	serverSettings struct {
 		TemplatePath    string        `toml:"template_path"`

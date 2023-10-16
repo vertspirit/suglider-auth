@@ -1,15 +1,18 @@
 [database]
-  host     = "localhost"
-  port     = "3306"
-  name     = "suglider"
-  user     = ""
-  password = ""
-  timeout  = "5s" # Value can be 1h, 1m, 10s, 2days would be 48h.
+  host      = "localhost"
+  port      = "3306"
+  name      = "suglider"
+  user      = ""
+  password  = ""
+  timeout   = "5s" # Value can be 1h, 1m, 10s, 2days would be 48h.
 [redis]
-  host     = "localhost"
-  port     = "6379"
+  host      = "localhost"
+  port      = "6379"
+  password  = ""
 [session]
-  timeout  = "2h" # Value can be 1h, 1m, 10s, 2days would be 48h.
+  timeout   = "2h" # Value can be 1h, 1m, 10s, 2days would be 48h.
+  path      = "/"
+  http_only = true
 [server]
   graceful_timeout  = 5
   read_timeout      = 5
@@ -17,7 +20,7 @@
   max_header_bytes  = 2
   casbin_config     = "/usr/local/app/configs/rbac_model.conf"
   casbin_table      = "casbin_policies"
-  casbin_cache      = true
+  casbin_cache      = false
   enable_rbac       = true
   template_path     = "/usr/local/app/web/template"
   static_path       = "/usr/local/app/web/static"

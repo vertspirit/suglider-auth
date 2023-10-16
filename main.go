@@ -72,18 +72,20 @@ func init() {
 
 func main() {
 	apiServer := &authApiSettings {
-		Name:           ServiceName,
-		Version:        Version,
-		TemplatePath:   configs.ApplicationConfig.Server.TemplatePath,
-		StaticPath:     configs.ApplicationConfig.Server.StaticPath,
-		CasbinConfig:   configs.ApplicationConfig.Server.CasbinConfig,
-		CasbinTable:    configs.ApplicationConfig.Server.CasbinTable,
-		CasbinCache:    configs.ApplicationConfig.Server.CasbinCache,
-		ReadTimeout:    configs.ApplicationConfig.Server.ReadTimeout,
-		WriteTimeout:   configs.ApplicationConfig.Server.WriteTimeout,
-		MaxHeaderBytes: configs.ApplicationConfig.Server.MaxHeaderBytes,
-		EnableRbac:     configs.ApplicationConfig.Server.EnableRbac,
-		EnablePprof:    configs.Args.Debug,
+		Name:             ServiceName,
+		Version:          Version,
+		TemplatePath:     configs.ApplicationConfig.Server.TemplatePath,
+		StaticPath:       configs.ApplicationConfig.Server.StaticPath,
+		SessionsPath:     configs.ApplicationConfig.Session.Path,
+		SessionsHttpOnly: configs.ApplicationConfig.Session.HttpOnly,
+		CasbinConfig:     configs.ApplicationConfig.Server.CasbinConfig,
+		CasbinTable:      configs.ApplicationConfig.Server.CasbinTable,
+		CasbinCache:      configs.ApplicationConfig.Server.CasbinCache,
+		ReadTimeout:      configs.ApplicationConfig.Server.ReadTimeout,
+		WriteTimeout:     configs.ApplicationConfig.Server.WriteTimeout,
+		MaxHeaderBytes:   configs.ApplicationConfig.Server.MaxHeaderBytes,
+		EnableRbac:       configs.ApplicationConfig.Server.EnableRbac,
+		EnablePprof:      configs.Args.Debug,
 	}
 
 	if configs.Args.Subpath != "" {

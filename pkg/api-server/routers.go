@@ -24,20 +24,22 @@ import (
 )
 
 type AuthApiSettings struct {
-	Name            string
-	Version         string
-	SubpathPrefix   string
-	TemplatePath    string
-	StaticPath      string
-	CasbinConfig    string
-	CasbinTable     string
-	GracefulTimeout int
-	ReadTimeout     int
-	WriteTimeout    int
-	MaxHeaderBytes  int
-	EnablePprof     bool
-	EnableRbac      bool
-	CasbinCache     bool
+	Name             string
+	Version          string
+	SubpathPrefix    string
+	TemplatePath     string
+	StaticPath       string
+	SessionsPath     string
+	CasbinConfig     string
+	CasbinTable      string
+	GracefulTimeout  int
+	ReadTimeout      int
+	WriteTimeout     int
+	MaxHeaderBytes   int
+	EnablePprof      bool
+	EnableRbac       bool
+	CasbinCache      bool
+	SessionsHttpOnly bool
 }
 
 type CasbinEnforcerConfig = rbac.CasbinEnforcerConfig
@@ -53,7 +55,8 @@ func (aa * AuthApiSettings) SetupRouter(swag gin.HandlerFunc) *gin.Engine {
 	// time_convert.CookieMaxAge is a global variable from time_convert.go
 	cookieStore.Options(sessions.Options{
 		MaxAge:   time_convert.CookieMaxAge,  // unit second
-		HttpOnly: true,
+		HttpOnly: aa.SessionsHttpOnly,
+		Path:     aa.SessionsPath,
 	})
 
 	if aa.EnablePprof {
