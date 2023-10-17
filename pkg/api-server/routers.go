@@ -96,6 +96,12 @@ func (aa * AuthApiSettings) SetupRouter(swag gin.HandlerFunc) *gin.Engine {
 	if err = csbn.InitPolicies(); err != nil {
 		slog.Error(err.Error())
 	}
+
+	// demo web
+	router.GET("/sign-up", SignUpPage)
+	router.GET("/login", LoginPage)
+	router.GET("/hello", HelloPage)
+	router.Use(checkSession())
 	if aa.EnableRbac {
 		router.Use(userPrivilege(csbn))
 	}

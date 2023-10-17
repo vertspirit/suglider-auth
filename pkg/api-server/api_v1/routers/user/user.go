@@ -7,10 +7,11 @@ import (
 
 func UserHandler(router *gin.RouterGroup) {
 
-	router.POST("/sign-up", handlers.UserSignUp)
+	// demo web
+	router.POST("/sign-up", handlers.UserSignUpDemo)
 	router.POST("/delete", handlers.UserDelete)
-	router.POST("/login", handlers.UserLogin)
-	router.POST("/logout", handlers.UserLogOut)
+	router.POST("/login", handlers.UserLoginDemo)
+	router.POST("/logout", handlers.UserLogOutDemo)
 
 	// Test
 	router.GET("/test", handlers.Test)
