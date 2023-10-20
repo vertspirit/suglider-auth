@@ -2,7 +2,8 @@ package time_convert
 
 import (
 	"time"
-	"log"
+	"fmt"
+	"log/slog"
 )
 
 var CookieMaxAge int
@@ -17,7 +18,8 @@ func ConvertTimeFormat(ttl string) {
 
 	ttlDuration, err = time.ParseDuration(ttl)
 	if err != nil {
-		log.Println("TTL string convert to duration failed:", err)
+		errorMessage := fmt.Sprintf("TTL string convert to duration failed: %v", err)
+		slog.Error(errorMessage)
 		panic(err)
 	}
 

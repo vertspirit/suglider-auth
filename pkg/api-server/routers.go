@@ -3,7 +3,6 @@ package api_server
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -136,14 +135,16 @@ func (aa * AuthApiSettings) StartServer(addr string, swag gin.HandlerFunc) {
 		MaxHeaderBytes: aa.MaxHeaderBytes << 20, // default is max 2 MB
 	}
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-		    log.Printf("Server Listen Error: %s\n", err)
+		if err := srv.ListenAndServe(); err != nil {			
+			errorMessage := fmt.Sprintf("Server Listen Error: %v", err)
+			slog.Error(errorMessage)
+
 		}
 	}()
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	slog.Info("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
@@ -151,13 +152,14 @@ func (aa * AuthApiSettings) StartServer(addr string, swag gin.HandlerFunc) {
 	)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown: ", err)
+		errorMessage := fmt.Sprintf("Server forced to shutdown: %v", err)
+		slog.Error(errorMessage)
 		os.Exit(1)
 	}
 	select {
 		case <-ctx.Done():
-			log.Println("Graceful Shutdown start...")
+			slog.Info("Graceful Shutdown start...")
 			close(quit)
 	}
-	log.Println("Graceful shutdown finished...")
+	slog.Info("Graceful shutdown finished...")
 }

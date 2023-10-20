@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	mariadb "suglider-auth/internal/database"
 	"suglider-auth/pkg/encrypt"
 	"database/sql"
 	"suglider-auth/pkg/session"
+	"suglider-auth/internal/utils"
 )
 
 type userSignUp struct {
@@ -50,7 +52,7 @@ func UserSignUp(c *gin.Context) {
 	// Check the parameter trasnfer from POST
 	err = c.ShouldBindJSON(&request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, utils.ErrorResponse(c, 1001, err))
 		return
 	}
 
@@ -59,11 +61,13 @@ func UserSignUp(c *gin.Context) {
 
 	err = mariadb.UserSignUp(request.Username, passwordEncode, request.Mail, request.Address)
 	if err != nil {
-		log.Println("Insert user_info table failed:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		errorMessage := fmt.Sprintf("Insert user_info table failed: %v", err)
+		slog.Error(errorMessage)
+
+		c.JSON(http.StatusInternalServerError, utils.ErrorResponse(c, 1002, err))
 		return
 	} else {
-		c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
+		c.JSON(http.StatusOK, utils.SuccessResponse(c, 200))
 	}
 }
 
@@ -86,7 +90,7 @@ func UserDelete(c *gin.Context) {
 	// Check the parameter trasnfer from POST
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, utils.ErrorResponse(c, 1001, err))
 		return
 	}
 
@@ -95,8 +99,10 @@ func UserDelete(c *gin.Context) {
 
 		// First, check if error or not
 		if err != nil {
-			log.Println("Delete user_info data failed:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			errorMessage := fmt.Sprintf("Delete user_info data failed: %v", err)
+			slog.Error(errorMessage)
+
+			c.JSON(http.StatusInternalServerError, utils.ErrorResponse(c, 1002, err))
 			return
 		} 
 
@@ -104,9 +110,9 @@ func UserDelete(c *gin.Context) {
 		rowsAffected, _ := result.RowsAffected()
 
 		if rowsAffected == 0 {
-			c.JSON(http.StatusOK, gin.H{"message": "No search this user"})
+			c.JSON(http.StatusNotFound, utils.ErrorResponse(c, 1003))
 		} else if rowsAffected > 0 {
-			c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+			c.JSON(http.StatusOK, utils.SuccessResponse(c, 200))
 		}
 	} else {
 
@@ -114,8 +120,10 @@ func UserDelete(c *gin.Context) {
 
 		// First, check if error or not
 		if err != nil {
-			log.Println("Delete user_info data failed:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			errorMessage := fmt.Sprintf("Delete user_info data failed: %v", err)
+			slog.Error(errorMessage)
+
+			c.JSON(http.StatusInternalServerError, utils.ErrorResponse(c, 1002, err))
 			return
 		} 
 
@@ -123,9 +131,9 @@ func UserDelete(c *gin.Context) {
 		rowsAffected, _ := result.RowsAffected()
 
 		if rowsAffected == 0 {
-			c.JSON(http.StatusOK, gin.H{"message": "No search this user"})
+			c.JSON(http.StatusNotFound, utils.ErrorResponse(c, 1003))
 		} else if rowsAffected > 0 {
-			c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+			c.JSON(http.StatusOK, utils.SuccessResponse(c, 200))
 		}
 	}
 }
@@ -151,7 +159,7 @@ func UserLogin(c *gin.Context) {
 	// Check the parameter trasnfer from POST
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, utils.ErrorResponse(c, 1001, err))
 		return
 	}
 
@@ -165,22 +173,23 @@ func UserLogin(c *gin.Context) {
 
 		// Check password true or false
 		if pwdVerify {		
-			c.JSON(http.StatusOK, gin.H{"message": "User Logined successfully"})
-		} else if !pwdVerify {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
-			return
+			c.JSON(http.StatusOK, utils.SuccessResponse(c, 200))
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.JSON(http.StatusUnauthorized, utils.ErrorResponse(c, 1004))
 			return
 		}
 
 	} else if err == sql.ErrNoRows {
-		log.Println("User Login failed:", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		errorMessage := fmt.Sprintf("User Login failed: %v", err)
+		slog.Error(errorMessage)
+
+		c.JSON(http.StatusNotFound, utils.ErrorResponse(c, 1003, err))
 		return
 	} else if err != nil {
-		log.Println("Login failed:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		errorMessage := fmt.Sprintf("Login failed: %v", err)
+		slog.Error(errorMessage)
+
+		c.JSON(http.StatusInternalServerError, utils.ErrorResponse(c, 1002, err))
 		return
 	}
 
@@ -189,10 +198,18 @@ func UserLogin(c *gin.Context) {
 	// Check session exist or not
 	ok := session.CheckSession(c)
 	if !ok {
-		session.AddSession(c, request.Username)
+		_, err := session.AddSession(c, request.Username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, utils.ErrorResponse(c, 1005, err))
+			return
+		}
 	} else {
 		session.DeleteSession(sid)
-		session.AddSession(c, request.Username)
+		_, err := session.AddSession(c, request.Username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, utils.ErrorResponse(c, 1005, err))
+			return
+		}
 	}
 
 }
@@ -204,7 +221,7 @@ func UserLogOut(c *gin.Context) {
 	// Check session exist or not
 	ok := session.CheckSession(c)
 	if !ok {
-		log.Printf("session ID %s doesn't exsit in redis\n", sid)
+		slog.Info(fmt.Sprintf("session ID %s doesn't exsit in redis", sid))
 		return
 	}
 
@@ -215,10 +232,10 @@ func UserLogOut(c *gin.Context) {
 func Test(c *gin.Context) {
 	// session.AddSession(c, "tony")
 	sid := session.ReadSession(c)
-	log.Printf("sid:%s\n", sid)
+	slog.Info(fmt.Sprintf("sid:%s", sid))
 	
 	if sid == "<nil>" {
-		log.Println("sid is nil")
+		slog.Info("sid is nil")
 	}
 
 }
@@ -227,12 +244,12 @@ func Test(c *gin.Context) {
 func Testv2(c *gin.Context) {
 
 	sid := session.ReadSession(c)
-	log.Println("sid:", sid)
+	slog.Info(fmt.Sprintf("sid:%s", sid))
 
 	// Check session exist or not	
 	ok := session.CheckSession(c)
 	if !ok {
-		log.Printf("session ID %s doesn't exsit in redis\n", sid)
+		slog.Info(fmt.Sprintf("session ID %s doesn't exsit in redis", sid))
 		return
 	}
 

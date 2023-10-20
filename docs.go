@@ -53,13 +53,15 @@ func redocHandler(c *gin.Context) {
     case "index.html":
         indexHtml, err := ioutil.ReadFile("configs/redoc.tmpl")
         if err != nil {
-            log.Printf("Read HTML Template File Error: %v\n", err)
+            errorMessage := fmt.Sprintf("Read HTML Template File Error: %v", err)
+            slog.Error(errorMessage)
+            
             c.AbortWithStatus(http.StatusInternalServerError)
             return
         }
         bodyTemplate, err := template.New("redoc").Parse(string(indexHtml))
         if err != nil {
-            log.Println(err)
+            slog.Error(err.Error())
             c.AbortWithStatus(http.StatusInternalServerError)
             return
         }
@@ -68,7 +70,7 @@ func redocHandler(c *gin.Context) {
         }
         buf := new(bytes.Buffer)
         if err = bodyTemplate.Execute(buf, specUrl); err != nil {
-             log.Println(err)
+            slog.Error(err.Error())
              c.AbortWithStatus(http.StatusInternalServerError)
              return
         }
@@ -76,7 +78,7 @@ func redocHandler(c *gin.Context) {
     case "doc.json":
         doc, err := ioutil.ReadFile("docs/swagger.json")
         if err != nil {
-            log.Println(err)
+            slog.Error(err.Error())
             c.AbortWithStatus(http.StatusInternalServerError)
             return
         }

@@ -1,7 +1,8 @@
 package database
 
 import (
-	"log"
+	"log/slog"
+	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"suglider-auth/configs"
@@ -30,14 +31,17 @@ func init() {
 	// Connect to MariaDB
 	DataBase, dbErr = sqlx.Connect("mysql", DataBaseURL)
 	if dbErr != nil {
-		log.Println("Can not connect to database:", dbErr)
+		errorMessage := fmt.Sprintf("Can not connect to database: %v", dbErr)
+		slog.Error(errorMessage)
+		
 		panic(dbErr)
 	}
 
 	// Set DB max connection
     DataBase.SetMaxOpenConns(100)
 
-	log.Println("Connected to DataBase successfully！")
+	slog.Info(fmt.Sprintf("Connected to DataBase successfully！"))
+
 
 }
 

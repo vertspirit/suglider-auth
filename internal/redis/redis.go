@@ -3,9 +3,10 @@ package redis
 import (
 	"github.com/redis/go-redis/v9"
 	"suglider-auth/configs"
-	"log"
+	"log/slog"
 	"context"
 	"time"
+	"fmt"
 )
 
 var rdb *redis.Client
@@ -20,11 +21,14 @@ func init() {
 
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {
-		log.Println("Can not connect to redis:", err)
+		errorMessage := fmt.Sprintf("Can not connect to redis: %v", err)
+		slog.Error(errorMessage)
+		
 		panic(err)
 	}
 
-	log.Println("Connected to Redis successfully, redis master return:", pong)
+	slog.Info(fmt.Sprintf("Connected to Redis successfully, redis master return: %s", pong))
+
 }
 
 // Redis SET
@@ -32,7 +36,9 @@ func Set(key, value string, ttl time.Duration) {
 
 	err := rdb.Set(ctx, key, value, ttl).Err()
 	if err != nil {
-		log.Println("Redis SET data have something problem:", err)
+		errorMessage := fmt.Sprintf("Redis SET data have something problem: %v", err)
+		slog.Error(errorMessage)
+
 		return
 	}
 }
@@ -44,13 +50,14 @@ func Get(key string) string {
 
 	// Check whether key exist or not
 	if err == redis.Nil {
-		log.Printf("Key '%s' does not exist.", key)
+		slog.Info(fmt.Sprintf("Key '%s' does not exist.", key))
 		return ""
 	} else if err != nil {
-		log.Println("Redis GET data failed:", err)
+		errorMessage := fmt.Sprintf("Redis GET data failed: %v", err)
+		slog.Error(errorMessage)
 		return ""
 	} else {
-		log.Println("key:", value)
+		slog.Info(fmt.Sprintf("key: %s", value))
 		return value
     }
 }
@@ -61,7 +68,8 @@ func Exists(key string) bool {
 	exists, err := rdb.Exists(ctx, key).Result()
 
 	if err != nil {
-		log.Println("Checking whether key exist or not happen something wrong:", err)
+		errorMessage := fmt.Sprintf("Checking whether key exist or not happen something wrong: %v", err)
+		slog.Error(errorMessage)
 	}
 
 	// Check whether key exist or not
@@ -77,11 +85,13 @@ func Delete(key string) {
 
 	err := rdb.Del(ctx, key).Err()
 	if err != nil {
-		log.Printf("Delete key(%s) failed: %v\n", key, err)
+		errorMessage := fmt.Sprintf("Delete key(%s) failed: %v", key, err)
+		slog.Error(errorMessage)
+		
 		return
 	}
 
-	log.Printf("Delete key(%s) successfully\n", key)
+	slog.Info(fmt.Sprintf("Delete key(%s) successfully.", key))
 }
 
 // Close redis connection

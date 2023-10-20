@@ -1,7 +1,7 @@
 package sql_table
 
 import (
-	"log"
+	"log/slog"
 	_ "github.com/go-sql-driver/mysql"
 	mariadb "suglider-auth/internal/database"
 	"io/ioutil"
@@ -34,7 +34,7 @@ func SugliderTableInit() {
 		mariadb.DataBase.Exec(sqlStatement)
 	}
 
-	log.Println("SQL file excution complete!")
+	slog.Info("SQL file excution complete!")
 
 }
 
@@ -43,7 +43,8 @@ func readSQLFile(filePath string) ([]byte) {
 	// Read SQL file
 	sqlFile, err := os.Open(filePath)
 	if err != nil {
-		log.Println(err)
+		slog.Error(err.Error())
+		
 		panic("Can not open " + filePath)
 	}
 	defer sqlFile.Close()
@@ -51,7 +52,7 @@ func readSQLFile(filePath string) ([]byte) {
 	// Read SQL file content
 	sqlBytes, err := ioutil.ReadAll(sqlFile)
 	if err != nil {
-		log.Println(err)
+		slog.Error(err.Error())
 		panic("Can not read content " + filePath)
 	}
 

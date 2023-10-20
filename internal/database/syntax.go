@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"context"
 	"time"
-	"log"
+	"fmt"
+	"log/slog"
 	"suglider-auth/configs"
 )
 
@@ -17,7 +18,9 @@ func init() {
 	dbTimeOut, err = time.ParseDuration(DatabaseConfig.Timeout)
 
 	if err != nil {
-		log.Println("DB timeout string convert to duration failed:", err)
+		errorMessage := fmt.Sprintf("DB timeout string convert to duration failed: %v", err)
+		slog.Error(errorMessage)
+
 		panic(err)
 	}
 }

@@ -3,7 +3,7 @@ package configs
 import (
 	"os"
 	"fmt"
-	"log"
+	"log/slog"
 	"log/syslog"
 	"flag"
 	"github.com/BurntSushi/toml"
@@ -115,7 +115,9 @@ func loadConfig() {
 	} else {
 		_, err := toml.DecodeFile(Args.Config, &ApplicationConfig)
 		if err != nil {
-			log.Printf("Failed to load the configuration！")
+			errorMessage := fmt.Sprintf("Failed to load the configuration: %v", err)
+			slog.Error(errorMessage)
+			
 			panic(err)
 		}
 	}
@@ -131,7 +133,9 @@ func (l *syslogSettings) CreateSyslogLogger(name string) (*syslog.Writer, error)
 
 	logger, err := syslog.Dial(l.Protocol, hostAddr, syslog.LOG_ERR|syslog.LOG_DAEMON, name)
 	if err != nil {
-		log.Printf("Syslog Server Error: %v\n", err)
+		errorMessage := fmt.Sprintf("Syslog Server Error: %v", err)
+		slog.Error(errorMessage)
+
 		return nil, err
 	}
 

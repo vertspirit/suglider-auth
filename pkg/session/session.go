@@ -6,8 +6,7 @@ import (
 	"suglider-auth/pkg/encrypt"
 	"suglider-auth/internal/redis"
 	"encoding/json"
-	"net/http"
-	"log"
+	"log/slog"
 	"suglider-auth/pkg/time_convert"
 	"fmt"
   )
@@ -16,7 +15,7 @@ type sessionData struct {
 	Username	string	`json:"username"`
 }
 
-func AddSession(c *gin.Context, user string) {
+func AddSession(c *gin.Context, user string) (string, error) {
 
 	sessionValue := sessionData{
 		Username: user,
@@ -24,9 +23,9 @@ func AddSession(c *gin.Context, user string) {
 
 	jsonSessionValue, err := json.Marshal(sessionValue)
 	if err != nil {
-		log.Println("Failed to create session value JSON data:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create session value JSON data"})
-		return
+		errorMessage := fmt.Sprintf("Failed to create session value JSON data: %v", err)
+		slog.Error(errorMessage)
+		return "", err
 	}
 
 	// Genertate session ID with no Dash
@@ -42,7 +41,8 @@ func AddSession(c *gin.Context, user string) {
 
 	// time_convert.RedisTTL is a global variable from time_convert.go
 	redis.Set(redisKey, redisValue, time_convert.RedisTTL)
-	c.JSON(200, gin.H{"add-sid": session.Get("sid")})
+	
+	return sessionID, nil
 }
 
 func CheckSession(c *gin.Context) bool {
