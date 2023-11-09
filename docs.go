@@ -4,7 +4,7 @@ package main
 
 import (
     "fmt"
-    "log"
+    "log/slog"
     "strings"
     "text/template"
     "bytes"
